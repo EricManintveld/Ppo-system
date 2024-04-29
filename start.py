@@ -4,9 +4,9 @@ import os
 
 ### MODULE 1 ###
 # Generate process model using split miner.
-event_log_path = '.\\splitminer\\repair.xes.gz'
+event_log_path = '.\\datasets\\xes\\Road_Traffic_Fine_Management_Process.xes'
 output_folder = '.\\splitminer_output'
-model_name = 'repair-model'
+model_name = 'traffic-fine-model'
 
 output_path = os.path.join(output_folder, model_name)
 generate_bpmn(event_log_path, output_path)
@@ -15,6 +15,8 @@ abstraction_path = abstract_process_model(output_path + '.bpmn', output_folder, 
 
 ### MODULE 2 ###
 # Run the alarm system on incoming datapoints.
+# Load trained model
+
 # Raise the alarm when an intervention has to be taken.
 # OUTPUT: Moment of intervention & the trace that has to be analyzed.
 
