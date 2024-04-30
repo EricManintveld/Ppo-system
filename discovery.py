@@ -8,7 +8,7 @@ import os
 def generate_bpmn(data_path, output_path):
     #Check if the model already exists
     if Path(output_path + '.bpmn').exists():
-        print('Model already exists. No need to regenerate. Using the existing model.')
+        print('BPMN model already exists. No need to regenerate. Using the existing model.')
         return
     else:
         command = "java -cp .\\splitminer\\sm2.jar;.\\splitminer\\lib\\* au.edu.unimelb.services.ServiceProvider SM2 %s %s 0.05" % (data_path, output_path)
