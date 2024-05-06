@@ -1,3 +1,6 @@
+# I moved this file to this folder while debugging.
+# It should be in the alarmsystem folder. But it has to be added back to the init file.
+
 from transformers.StaticTransformer import StaticTransformer
 from transformers.LastStateTransformer import LastStateTransformer
 from transformers.AggregateTransformer import AggregateTransformer
