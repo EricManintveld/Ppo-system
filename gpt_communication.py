@@ -12,16 +12,25 @@ deployment_name='ppo-35-turbo'
 
 def getCompletion(prompt):
   # Send a completion call to generate an answer
-  print('Sending a test completion job')
-  response = client.completions.create(model=deployment_name, prompt=prompt, max_tokens=50)
-  print(prompt+response.choices[0].text)
+  print('Waiting for GPT to respond...')
+  response = client.completions.create(model=deployment_name, prompt=prompt, max_tokens=240) # 240 is the max per minute (request more if needed)
   return response
 
-def generatePrompt():
-  prompt = 'Write a slogan for an ice cream shop.'
+def generatePrompt(abstraction_path, events_executed):
+  # Open abstraction
+  with open(abstraction_path, 'r') as file:
+    abstraction = file.read()
+  prompt = abstraction
+  prompt += 'Based on the execution of the following process trace, I predict the result of this trace will be undesirable:'
+  for event in events_executed:
+    prompt += '"' + event + '" '
+  prompt += 'I am the person supervising the execution of this process. An actionable recommendation for a next step is:'
+
   return prompt
 
-def getRecommendation():
-  prompt = generatePrompt()
+
+def getRecommendation(abstraction_path, events_executed):
+  prompt = generatePrompt(abstraction_path, events_executed)
   response = getCompletion(prompt)
+  print(prompt)
   return response.choices[0].text

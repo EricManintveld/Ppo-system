@@ -5,7 +5,7 @@ from data_manager import load_data
 from model_manager import get_prediction
 from extract_context import get_events
 from alarm_manager import check_alarm
-from gpt_communication import getCompletion
+from gpt_communication import getRecommendation
 
 # This list of variables can be refactored
 # List of file locations
@@ -51,10 +51,15 @@ print(predictions.head())
 # Raise the alarm when an intervention has to be taken.
 cost_undesired_outcome = 5
 cost_intervention = 1
-alarm_triggered, events_executed = check_alarm(predictions, threshold_folder, dataset_name, cost_undesired_outcome, cost_intervention)
-# OUTPUT: Alarm decision & list of executed action before alarm was raides.
+alarm_triggered, problem_traces = check_alarm(predictions, threshold_folder, dataset_name, cost_undesired_outcome, cost_intervention)
+# OUTPUT: Alarm decision & rows of executed action before alarm was raised.
 # For extra context it might be good to include more information like the height of the fine etc. (not only the executed events)
+
+# events_executed is now a list of dataframes.
 
 ### MODULE 4 ###
 # Combine the outputs from the first 3 modules into a prompt for the LLM.
-getCompletion()
+if alarm_triggered:
+    for trace in problem_traces:
+        recommendation = getRecommendation(abstraction_path, trace['concept:name'])
+        print("Response: " + recommendation)
