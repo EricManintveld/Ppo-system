@@ -6,6 +6,7 @@ from model_manager import get_prediction
 from extract_context import get_events
 from alarm_manager import check_alarm
 from gpt_communication import getRecommendation
+from pathlib import Path
 
 # This list of variables can be refactored
 # List of file locations
@@ -18,6 +19,7 @@ xes_logs_folder = '.\\datasets\\xes'
 scoring_dataset_name = "TrafficFinesUnlabeled_1.csv"
 dataset_name = 'Road_Traffic_Fine_Management_Process_labeled_cleaned'
 threshold_folder = ".\\thresholds"
+model_path = "models\\traffic_fine_model.pkl"
 
 ### MODULE 1 ###
 # Generate process model using split miner.
@@ -33,9 +35,16 @@ events = get_events(event_log_name, xes_logs_folder)
 ### MODULE 3 ###
 # Run the alarm system on incoming datapoints.
 
-# Load trained model
-with open("models\\traffic_fine_model.pkl", 'rb') as pickle_file:
-    model = pickle.load(pickle_file)
+# Check if model exists
+if Path(model_path).exists():
+    # Load trained model
+    with open(model_path, 'rb') as pickle_file:
+        model = pickle.load(pickle_file)
+
+else:
+    # Train model
+    print('No model found!')
+    exit()
 
 # Retrieve data
 data_path = os.path.join(csv_logs_folder, scoring_dataset_name)

@@ -1,18 +1,16 @@
-from . import dataset_confs
+import dataset_confs
 
 import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import StratifiedKFold
 
-from pathlib import Path
-
 
 class DatasetManager:
     
     def __init__(self, raw_data):
         self.raw_data = raw_data
-        self.dataset_name = "Road_Traffic_Fine_Management_Process_labeled_cleaned"
+        self.dataset_name = "BPI_Challenge_2017"
 
         self.case_id_col = dataset_confs.case_id_col[self.dataset_name]
         self.activity_col = dataset_confs.activity_col[self.dataset_name]
@@ -34,8 +32,8 @@ class DatasetManager:
         for col in self.dynamic_num_cols + self.static_num_cols:
             dtypes[col] = "float"
 
-        data = pd.read_csv(self.raw_data, sep=",", dtype=dtypes) # Set correct sep here.
-        data[self.timestamp_col] = pd.to_datetime(data[self.timestamp_col])
+        data = pd.read_csv(dataset_confs.filename[self.dataset_name], sep=",", dtype=dtypes) # Set correct sep here.
+        data[self.timestamp_col] = pd.to_datetime(data[self.timestamp_col], format='mixed', dayfirst=False)
 
         return data
 

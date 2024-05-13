@@ -15,7 +15,7 @@ static_num_cols = {}
 filename = {}
 
 # Set log directory
-logs_dir = "C:/Users/eric.manintveld/OneDrive - Avanade/Thesis/Datasets/Road Traffic Fine Management Process_1_all"
+logs_dir = "C:\\Users\\eric.manintveld\\OneDrive - Avanade\\Thesis\\Code\\PPO-System\\datasets\\csv"
 
 ### Eric's Traffic Fine settings ###
 
@@ -38,6 +38,28 @@ dynamic_num_cols[dataset] = ["expense"]
 static_num_cols[dataset] = ["amount", "points"]
 
 filename[dataset] = os.path.join(logs_dir, "Road_Traffic_Fine_Management_Process_labeled_cleaned.csv")
+
+### Eric's BPI 2017 settings ###
+
+dataset = "BPI_Challenge_2017"
+
+case_id_col[dataset] = "case:concept:name"
+activity_col[dataset] = "concept:name"
+resource_col[dataset] = "org:resource"
+timestamp_col[dataset] = "time:timestamp"
+
+#labels
+label_col[dataset] = 'label'
+pos_label[dataset] = 'deviant'
+neg_label[dataset] = 'regular'
+
+#features for classifier
+dynamic_cat_cols[dataset] = ["concept:name", 'org:resource', 'Action', 'EventOrigin', 'lifecycle:transition', "Accepted", "Selected"]
+static_cat_cols[dataset] = ['case:ApplicationType', 'case:LoanGoal']
+dynamic_num_cols[dataset] = ['FirstWithdrawalAmount', 'MonthlyCost', 'NumberOfTerms', 'OfferedAmount', 'CreditScore']
+static_num_cols[dataset] = ['case:RequestedAmount']
+
+filename[dataset] = os.path.join(logs_dir, "BPI_2017_labeled.csv")
 
 
 
