@@ -47,8 +47,6 @@ def create_and_evaluate_model(args, n_lgbm_iter=100):
         lgbm = lgb.train(param, train_data, n_lgbm_iter)
         preds = lgbm.predict(X_test)
 
-        print(y_test[:30])
-
         score += roc_auc_score(y_test, preds)
     return {'loss': -score / n_splits, 'status': STATUS_OK, 'model': lgbm}
 
@@ -71,7 +69,6 @@ if not os.path.exists(os.path.join(params_dir)):
 # read the data
 dataset_manager = DatasetManager(dataset_name)
 data = dataset_manager.read_dataset()
-print(data.head(40))
 
 min_prefix_length = 1
 if "bpic2017" in dataset_name:
@@ -111,7 +108,7 @@ space = {'num_leaves': hp.choice('num_leaves', np.arange(2, 300, dtype=int)),
          'max_bin': hp.choice('max_bin', np.arange(2, 300, dtype=int)),
          'bagging_fraction': hp.uniform("bagging_fraction", 0.001, 0.999)}
 trials = Trials()
-best = fmin(create_and_evaluate_model, space, algo=tpe.suggest, max_evals=200, trials=trials)
+best = fmin(create_and_evaluate_model, space, algo=tpe.suggest, max_evals=50, trials=trials) # Originally max_evals=200
 
 best_params = hyperopt.space_eval(space, best)
 
