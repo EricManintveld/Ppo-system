@@ -13,20 +13,26 @@ def convert_data(raw_data):
     data = dataset_manager.read_dataset()
     print('Reading dataset done.')
 
+    print('Shape after reading: ' + str(data.shape))
+
     min_prefix_length = 1
-    max_prefix_length = int(np.ceil(data.groupby(dataset_manager.case_id_col).size().quantile(0.9)))
+    #max_prefix_length = int(np.ceil(data.groupby(dataset_manager.case_id_col).size().quantile(0.9))) # Original
+    max_prefix_length = int(np.ceil(data.groupby(dataset_manager.case_id_col).size().quantile(0.97)))
     
     prefixes = dataset_manager.generate_prefix_data(data, min_prefix_length, max_prefix_length) 
 
+    print('Shape after prefixes: ' + str(prefixes.shape))
+
     # Load encoder
-    with open("encoders\\encoder_Road_Traffic_Fine_Management_Process_labeled_cleaned.pickle", 'rb') as pickle_file:
+    with open("encoders\\encoder_BPI_Challenge_2017.pickle", 'rb') as pickle_file:
         feature_combiner = pickle.load(pickle_file)
     data_encoded = feature_combiner.transform(prefixes)
 
-    print("Shape after encoding prefixes: " + str(data.shape))
+    print("Shape after encoding prefixes: " + str(data_encoded.shape))
 
     return data_encoded, data
 
 def load_data(data_path):
+    print('Loading data from: ' + str(data_path))
     data_encoded, data = convert_data(data_path)
     return data_encoded, data

@@ -3,6 +3,7 @@ import os
 import pickle
 
 def get_prediction(model, data_encoded, data):
+    print(data_encoded.shape)
     result = model.predict(data_encoded)
 
     # Add results as column in dataframe

@@ -156,3 +156,5 @@ splitminer_output/traffic-fine-model.txt
 /datasets
 /encoders
 /models
+/recommendations
+/splitminer_output

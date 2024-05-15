@@ -1,4 +1,4 @@
-import dataset_confs
+from . import dataset_confs
 
 import pandas as pd
 import numpy as np
@@ -32,7 +32,8 @@ class DatasetManager:
         for col in self.dynamic_num_cols + self.static_num_cols:
             dtypes[col] = "float"
 
-        data = pd.read_csv(dataset_confs.filename[self.dataset_name], sep=",", dtype=dtypes) # Set correct sep here.
+        # data = pd.read_csv(dataset_confs.filename[self.dataset_name], sep=",", dtype=dtypes) # Set correct sep here. (For reading file using config in dataset_confs)
+        data = pd.read_csv(self.raw_data, sep=",", dtype=dtypes)
         data[self.timestamp_col] = pd.to_datetime(data[self.timestamp_col], format='mixed', dayfirst=False)
 
         return data

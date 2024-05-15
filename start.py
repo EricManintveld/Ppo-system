@@ -1,25 +1,24 @@
 from discovery import generate_bpmn, abstract_process_model
 import os
 import pickle
-from data_manager import load_data
-from model_manager import get_prediction
 from extract_context import get_events
 from alarm_manager import check_alarm
-from gpt_communication import getRecommendation
+from realtime_simulation import simulate_realtime
+
 from pathlib import Path
 
-# This list of variables can be refactored
 # List of file locations
-event_log_path = '.\\datasets\\xes\\Road_Traffic_Fine_Management_Process.xes'
+event_log_path = '.\\datasets\\xes\\BPI_Challenge_2017.xes'
 splitminer_output_folder = '.\\splitminer_output'
-model_name = 'traffic-fine-model'
-event_log_name = 'Road_Traffic_Fine_Management_Process.xes'
-csv_logs_folder = ".\\datasets\\csv\\"
+model_name = 'BPI_Challenge_2017_lgbm_model'
+event_log_name = 'BPI_Challenge_2017.xes'
+csv_logs_folder = ".\\datasets\\csv\\BPI_2017_unlabeled\\"
 xes_logs_folder = '.\\datasets\\xes'
-scoring_dataset_name = "TrafficFinesUnlabeled_1.csv"
-dataset_name = 'Road_Traffic_Fine_Management_Process_labeled_cleaned'
-threshold_folder = ".\\thresholds"
-model_path = "models\\traffic_fine_model.pkl"
+scoring_dataset_name = "BPI_2017_unlabeled_single_incomplete.csv"
+dataset_name = 'BPI_Challenge_2017'
+threshold_folder = ".\\datasets\\thresholds"
+model_path = "models\\BPI_Challenge_2017_lgbm_model.pickle"
+traces_folder = ".\\datasets\\csv\\BPI_2017_unlabeled\\realtime_traces\\"
 
 ### MODULE 1 ###
 # Generate process model using split miner.
@@ -46,21 +45,12 @@ else:
     print('No model found!')
     exit()
 
-# Retrieve data
-data_path = os.path.join(csv_logs_folder, scoring_dataset_name)
-data_encoded, data = load_data(data_path)
-
-# Get predictions
-predictions = get_prediction(model, data_encoded, data)
-print("Predictions done!")
-print(predictions.head())
-
 # Select a threshold, according to the results of the paper a threshold of 5 to 1 would make sense.
 # Assumption: threshold ratio of 5 to 1.
 # Raise the alarm when an intervention has to be taken.
 cost_undesired_outcome = 5
 cost_intervention = 1
-alarm_triggered, problem_traces = check_alarm(predictions, threshold_folder, dataset_name, cost_undesired_outcome, cost_intervention)
+#alarm_triggered, problem_traces = check_alarm(predictions, threshold_folder, dataset_name, cost_undesired_outcome, cost_intervention)
 # OUTPUT: Alarm decision & rows of executed action before alarm was raised.
 # For extra context it might be good to include more information like the height of the fine etc. (not only the executed events)
 
@@ -68,7 +58,15 @@ alarm_triggered, problem_traces = check_alarm(predictions, threshold_folder, dat
 
 ### MODULE 4 ###
 # Combine the outputs from the first 3 modules into a prompt for the LLM.
-if alarm_triggered:
-    for trace in problem_traces:
-        recommendation = getRecommendation(abstraction_path, trace['concept:name'])
-        print("Response: " + recommendation)
+simulate_realtime(
+    traces_folder=traces_folder,
+    conf_threshold_dir= threshold_folder,
+    dataset_name=dataset_name,
+    c_miss_weight=cost_undesired_outcome,
+    c_action_weight=cost_undesired_outcome,
+    c_postpone_weight=cost_intervention,
+    abstraction_path=abstraction_path,
+    model=model
+)
+
+
