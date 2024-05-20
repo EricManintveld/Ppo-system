@@ -2,13 +2,15 @@ from discovery import generate_bpmn, abstract_process_model
 import os
 import pickle
 from extract_context import get_events
-from alarm_manager import check_alarm
-from realtime_simulation import simulate_realtime
+from realtime_simulation import simulate_realtime_last, export_random_traces
 
 from pathlib import Path
+import pandas as pd
 
 # List of file locations
 event_log_path = '.\\datasets\\xes\\BPI_Challenge_2017.xes'
+event_log_csv_path = '.\\datasets\\csv\\BPI_Challenge_2017.csv'
+event_log_test_csv_path = '.\\datasets\\csv\\BPI_2017_unlabeled_test.csv'
 splitminer_output_folder = '.\\splitminer_output'
 model_name = 'BPI_Challenge_2017_lgbm_model'
 event_log_name = 'BPI_Challenge_2017.xes'
@@ -58,13 +60,12 @@ cost_intervention = 1
 
 ### MODULE 4 ###
 # Combine the outputs from the first 3 modules into a prompt for the LLM.
-simulate_realtime(
+data = pd.read_csv(event_log_test_csv_path)
+print('Exporting random traces...')
+export_random_traces(data, traces_folder)
+simulate_realtime_last(
     traces_folder=traces_folder,
     conf_threshold_dir= threshold_folder,
-    dataset_name=dataset_name,
-    c_miss_weight=cost_undesired_outcome,
-    c_action_weight=cost_undesired_outcome,
-    c_postpone_weight=cost_intervention,
     abstraction_path=abstraction_path,
     model=model
 )

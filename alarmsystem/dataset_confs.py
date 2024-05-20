@@ -59,7 +59,7 @@ static_cat_cols[dataset] = ['case:ApplicationType', 'case:LoanGoal']
 dynamic_num_cols[dataset] = ['FirstWithdrawalAmount', 'MonthlyCost', 'NumberOfTerms', 'OfferedAmount', 'CreditScore']
 static_num_cols[dataset] = ['case:RequestedAmount']
 
-filename[dataset] = os.path.join(logs_dir, "BPI_2017_labeled.csv")
+filename[dataset] = os.path.join(logs_dir, "BPI_2017_labeled_train.csv")
 
 
 

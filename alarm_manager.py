@@ -33,8 +33,8 @@ def check_alarm(predictions, conf_threshold_dir, dataset_name, c_miss_weight, c_
             alarm_raised = True
     return alarm_raised, traces
 
-def get_trace(trace_id, predictions):
-    trace = predictions[predictions['case:concept:name'] == trace_id]
+def get_trace(trace_id, dataframe):
+    trace = dataframe[dataframe['case:concept:name'] == trace_id]
     return trace
 
 

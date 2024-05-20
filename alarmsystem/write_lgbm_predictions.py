@@ -32,7 +32,6 @@ def create_model(param, n_lgbm_iter=100, calibrate=False):
     if oversample:
         train_data = lgb.Dataset(X_train_ros, label=y_train_ros)
     else:
-        print("Shape right before training: " + str(X_train.shape))
         train_data = lgb.Dataset(X_train, label=y_train)
     lgbm = lgb.train(param, train_data, n_lgbm_iter)
     
@@ -72,13 +71,9 @@ start = time.time()
 # read the data
 dataset_manager = DatasetManager(dataset_name)
 data = dataset_manager.read_dataset()
-print(type(data))
-print("Shape after loading: " + str(data.shape))
 
 min_prefix_length = 1
-max_prefix_length = int(np.ceil(data.groupby(dataset_manager.case_id_col).size().quantile(0.9)))
-print("Max prefix length: " + str(max_prefix_length))
-
+max_prefix_length = int(np.ceil(data.groupby(dataset_manager.case_id_col).size().quantile(0.97)))
     
 cls_encoder_args = {'case_id_col': dataset_manager.case_id_col, 
                     'static_cat_cols': dataset_manager.static_cat_cols,
@@ -104,34 +99,23 @@ dt_train_prefixes = dataset_manager.generate_prefix_data(train, min_prefix_lengt
 dt_val_prefixes = dataset_manager.generate_prefix_data(val, min_prefix_length, max_prefix_length)
 dt_test_prefixes = dataset_manager.generate_prefix_data(test, min_prefix_length, max_prefix_length)
 
-print("Shape after generating prefix data (train): " + str(dt_train_prefixes.shape))
-print("Shape after generating prefix data (val): " + str(dt_val_prefixes.shape))
-print("Shape after generating prefix data (test): " + str(dt_test_prefixes.shape))
-
 # encode all prefixes
 feature_combiner = FeatureUnion([(method, EncoderFactory.get_encoder(method, **cls_encoder_args)) for method in ["static", "agg"]])
 X_train = feature_combiner.fit_transform(dt_train_prefixes)
-print("Shape after encoding prefixes: " + str(X_train.shape))
 X_test = feature_combiner.fit_transform(dt_test_prefixes)
-print("Shape after encoding prefixes: " + str(X_test.shape))
 y_train = dataset_manager.get_label_numeric(dt_train_prefixes)
 y_test = dataset_manager.get_label_numeric(dt_test_prefixes)
 X_val = feature_combiner.fit_transform(dt_val_prefixes)
-print("Shape after encoding prefixes: " + str(X_val.shape))
 y_val = dataset_manager.get_label_numeric(dt_val_prefixes)
 
 # Save encoder for later use.
 outfile = os.path.join(dataset_confs.logs_dir, "encoder_%s.pickle" % (dataset_name))
-# write to file
 with open(outfile, "wb") as fout:
     pickle.dump(feature_combiner, fout)
 
-
 if oversample:
-    print("Oversample, this shouldnt print")
     ros = RandomOverSampler(random_state=42)
     X_train_ros, y_train_ros = ros.fit_sample(X_train, y_train)
-
 
 # train the model with pre-tuned parameters
 with open(optimal_params_filename, "rb") as fin:
@@ -168,6 +152,8 @@ dt_preds = pd.DataFrame({"predicted_proba": preds_train, "actual": y_train,
 dt_preds_val = pd.DataFrame({"predicted_proba": preds_val, "actual": y_val,
                          "prefix_nr": dt_val_prefixes.groupby(dataset_manager.case_id_col).first()["prefix_nr"],
                          "case_id": dt_val_prefixes.groupby(dataset_manager.case_id_col).first()["orig_case_id"]})
+df_X_val = pd.DataFrame(X_val)
+dt_preds_val = dt_preds_val.join(df_X_val)
 #dt_preds = pd.concat([dt_preds, dt_preds_val], axis=0)
 dt_preds.to_csv(os.path.join(results_dir, "preds_train_%s.csv" % dataset_name), sep=";", index=False)
 dt_preds_val.to_csv(os.path.join(results_dir, "preds_val_%s.csv" % dataset_name), sep=";", index=False)

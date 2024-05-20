@@ -40,7 +40,7 @@ def get_chat_completion(prompt):
     model=deployment_name,
     messages=prompt,
     max_tokens=240,
-    temperature=0.3,
+    temperature=0.7,
   )
   return response
 
@@ -52,20 +52,26 @@ def generate_chat_prompt(abstraction_path, events_executed):
     abstraction = file.read()
 
   # Create system message
-  content = "Assistant is an intelligent chatbot designed to help executors of a process find an actionable recommendation to improve the outcome of the process. The recommendation should be applied during day-to-day process executions. The process executor does not have the authority to make large changes to the overall structure of the process. The executor is able to contact the customer."
+  content = "Assistant is an intelligent chatbot designed to help executors of a process find an actionable recommendation to improve the outcome of the process. " 
+  content += "The recommendation should be applied during day-to-day process executions. "
+  content += "The process executor does not have the authority to make large changes to the overall structure of the process. "
+  content += "The executor is able to contact the customer. "
+  content += "The executor can only intervene manually and does not have the ability to automate parts of the process."
+  content += "The desired outcome is: O_Accepted. In as few steps as possible. "
+  content += "The undersired outcomes are: O_Cancelled and O_Refused. "
   content += "The process in question is decribed by the following petri net: " + str(abstraction)
   
   system_message = {"role": "system", "content": content}
   prompt.append(system_message)
 
   # Create user example message
-  event_trace_example = "A_Create_Application -> A_Submitted -> W_Handle leads -> A_Concept -> Accepted -> O_CreateOffer -> O_Created -> O_Sent (online only)"
+  event_trace_example = "Created: A_Create_Application -> statechange: A_Submitted -> Created: W_Handle leads -> Deleted: W_Handle leads -> statechange: A_Concept -> statechange: A_Accepted -> Created: O_Create Offer -> statechange: O_Created -> statechange: O_Sent (online only)"
   user_example_message_content = "Without intervention, the following active process trace will end in a negative outcome:  " + event_trace_example + ". Please give me an actionable recommendation to improve the outcome of this process."
   user_example_message = {"role": "user", "content":user_example_message_content}
   prompt.append(user_example_message)
 
   # Create example assistent message
-  assistent_example_message_content = 'Send an e-mail to the customer to inform them about the current status of the application.'
+  assistent_example_message_content = 'Send a reminder e-mail to the customer to inform them about the current status of the application. So they do not forget to respond to the previous mail.'
   assistent_example_message = {"role": "assistant", "content": assistent_example_message_content}
   prompt.append(assistent_example_message)
 
