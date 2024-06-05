@@ -1,3 +1,5 @@
+# The large language model used is ChatGPT 3.5 turbo through Azure OpenAI.
+
 import os
 from openai import AzureOpenAI
     
@@ -10,10 +12,21 @@ client = AzureOpenAI(
 deployment_name='ppo-35-turbo'
 
 
+# Unused
 def get_completion(prompt):
   # Send a completion call to generate an answer
   print('Waiting for GPT to respond...')
   response = client.completions.create(model=deployment_name, prompt=prompt, max_tokens=240) # 240 is the max per minute (request more if needed)
+  return response
+
+def get_chat_completion(prompt):
+  print('Temperature = 0.7, waiting for response...')
+  response = client.chat.completions.create(
+    model=deployment_name,
+    messages=prompt,
+    max_tokens=240,
+    temperature=0.7,
+  )
   return response
 
 def generate_prompt(abstraction_path, events_executed):
@@ -34,15 +47,6 @@ def get_recommendation(abstraction_path, events_executed):
   response = get_chat_completion(prompt)
   return response.choices[0].message.content
 
-def get_chat_completion(prompt):
-  print('Temperature = 0.3, waiting for response...')
-  response = client.chat.completions.create(
-    model=deployment_name,
-    messages=prompt,
-    max_tokens=240,
-    temperature=0.7,
-  )
-  return response
 
 def generate_chat_prompt(abstraction_path, events_executed):
   prompt = []
@@ -58,8 +62,8 @@ def generate_chat_prompt(abstraction_path, events_executed):
   content += "The executor is able to contact the customer. "
   content += "The executor can only intervene manually and does not have the ability to automate parts of the process."
   content += "The desired outcome is: O_Accepted. In as few steps as possible. "
-  content += "The undersired outcomes are: O_Cancelled and O_Refused. "
-  content += "The process in question is decribed by the following petri net: " + str(abstraction)
+  content += "The undesired outcomes are: O_Cancelled and O_Refused. "
+  content += "The process in question is described by the following petri net: " + str(abstraction)
   
   system_message = {"role": "system", "content": content}
   prompt.append(system_message)

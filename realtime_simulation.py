@@ -36,42 +36,32 @@ def predict_all(traces_folder, model):
 
 
 def simulate_realtime(traces_folder, model, conf_threshold_dir, abstraction_path):
-    traces = predict_all(traces_folder, model)
+    conf_threshold = load_threshold(conf_threshold_dir)
+    traces = get_traces(traces_folder)
     for trace in traces:
-        events_executed = []
-        for index, event in trace.iterrows():
-            events_executed.append(event['concept:name'])
-            # Load conf threshold
-            conf_threshold = load_threshold(conf_threshold_dir)
-            print('conf_threshold = ' + str(conf_threshold))
-
-            conf_threshold = 0.7 # For testing
-            if event['prediction'] >= conf_threshold:
-                raise_alarm(conf_threshold, events_executed, abstraction_path, trace)
+        data = trace[0]
+        data_encoded = trace[1]
+        # Now predict line by line. Every time we move to the next line, all previous lines are included
+        for index, event in enumerate(data_encoded):
+            # Index starts at 0 for first event
+            # Create a slice 'index' long from data_encoded and run the prediction model
+            number_of_events = index + 1
+            events_to_analyze_encoded = data_encoded[:number_of_events]
+            events_to_analyze_regular = data[:number_of_events]
+            # Run prediction
+            predictions = get_prediction(model, events_to_analyze_encoded, events_to_analyze_regular)
+            # Check if the last prediction in the predictions dataframe is larger than the conf_threshold
+            last_row = predictions.iloc[-1]
+            if last_row['prediction'] >= conf_threshold:
+                # Activate the LLM and break 
+                # (Assumption: After intervening once, the process will end in a desirable outcome. 
+                # Because if we run again once new data is available, we should trigger at the same event again, not the new one)
+                events_executed = predictions['concept:name'].to_list()
+                raise_alarm(conf_threshold, events_executed, abstraction_path, predictions)
                 break
 
 
-def simulate_realtime_last(traces_folder, model, conf_threshold_dir, abstraction_path):
-    traces = predict_all(traces_folder, model)
-    # Load conf_threshold
-    conf_threshold = load_threshold(conf_threshold_dir)
-    conf_threshold = 0.7 # For testing
-
-    # Now check for every trace is the alarm should be triggered.
-    for trace in traces:
-        # Check the predicted probability of the last row
-        last_row = trace.iloc[-1]
-        if last_row['prediction'] >= conf_threshold:
-            events_executed = []
-            for index, event in trace.iterrows():
-                events_executed.append(str(event['Action']) + ": " + str(event['concept:name']))
-            # Raise the alarm
-            raise_alarm(conf_threshold, events_executed, abstraction_path, trace)
-
-
 def export_random_traces(data, traces_folder):
-    # trace = dataframe[dataframe['case:concept:name'] == trace_id]
-
     # First get all unique ids in the dataset
     unique_trace_ids = data['case:concept:name'].unique().tolist()
     random_trace_ids_sample = sample(unique_trace_ids, 10)
@@ -84,7 +74,7 @@ def export_random_traces(data, traces_folder):
 
 def load_threshold(conf_threshold_dir):
     # Load conf threshold
-    conf_file = os.path.join(conf_threshold_dir, "optimal_confs_BPI_Challenge_2017_5_1_0.pickle") # Hardcoded to 5 1 0
+    conf_file = os.path.join(conf_threshold_dir, "optimal_confs_BPI_Challenge_2017_5_1_0.pickle")
     with open(conf_file, "rb") as fin:
         conf_threshold = pickle.load(fin)['conf_threshold']
     return conf_threshold
@@ -107,4 +97,17 @@ def raise_alarm(conf_threshold, events_executed, abstraction_path, trace):
     print('Waiting 15 seconds to reset tokens.')
     time.sleep(15)
     print('Proceeding...')
+
+# Returns a list of traces found in the realtime_traces folder
+# The returned variable is a list of lists of data and data_encoded, which are dataframes
+def get_traces(traces_folder):
+    traces = []
+    files = os.listdir(traces_folder)
+    for file in files:
+        # Retrieve data
+        file_path = os.path.join(traces_folder, file)
+        data_encoded, data = load_data(file_path)
+        trace = [data, data_encoded]
+        traces.append(trace)
+    return traces
 

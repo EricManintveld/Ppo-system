@@ -2,7 +2,7 @@ from discovery import generate_bpmn, abstract_process_model
 import os
 import pickle
 from extract_context import get_events
-from realtime_simulation import simulate_realtime_last, export_random_traces
+from realtime_simulation import simulate_realtime, export_random_traces
 
 from pathlib import Path
 import pandas as pd
@@ -63,7 +63,7 @@ cost_intervention = 1
 data = pd.read_csv(event_log_test_csv_path)
 print('Exporting random traces...')
 export_random_traces(data, traces_folder)
-simulate_realtime_last(
+simulate_realtime(
     traces_folder=traces_folder,
     conf_threshold_dir= threshold_folder,
     abstraction_path=abstraction_path,

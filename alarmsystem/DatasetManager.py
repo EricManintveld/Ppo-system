@@ -1,8 +1,8 @@
 # Use this when running the PPO-system:
-from . import dataset_confs
+#from . import dataset_confs
 
 # Use this when training the model:
-#import dataset_confs
+import dataset_confs
 
 import pandas as pd
 import numpy as np
@@ -36,8 +36,9 @@ class DatasetManager:
         for col in self.dynamic_num_cols + self.static_num_cols:
             dtypes[col] = "float"
 
-        # data = pd.read_csv(dataset_confs.filename[self.dataset_name], sep=",", dtype=dtypes) # Set correct sep here. (For reading file using config in dataset_confs)
-        data = pd.read_csv(self.raw_data, sep=",", dtype=dtypes) # For running the PPO-system
+        data = pd.read_csv(dataset_confs.filename[self.dataset_name], sep=",", dtype=dtypes) # Set correct sep here. (For reading file using config in dataset_confs)
+        #data = pd.read_csv(self.raw_data, sep=",", dtype=dtypes) # For running the PPO-system
+        # UNUSED COLUMNS ARE NOT AUTOMATICALLY REMOVED!
         data[self.timestamp_col] = pd.to_datetime(data[self.timestamp_col], format='mixed', dayfirst=False)
 
         return data
