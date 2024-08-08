@@ -53,9 +53,7 @@ def simulate_realtime(traces_folder, model, conf_threshold_dir, abstraction_path
             # Check if the last prediction in the predictions dataframe is larger than the conf_threshold
             last_row = predictions.iloc[-1]
             if last_row['prediction'] >= conf_threshold:
-                # Activate the LLM and break 
-                # (Assumption: After intervening once, the process will end in a desirable outcome. 
-                # Because if we run again once new data is available, we should trigger at the same event again, not the new one)
+                # Activate the LLM and break
                 events_executed = predictions['concept:name'].to_list()
                 raise_alarm(conf_threshold, events_executed, abstraction_path, predictions)
                 break
